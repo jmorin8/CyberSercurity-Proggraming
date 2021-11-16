@@ -1,0 +1,41 @@
+#!/bin/bash
+ 
+# This function show which operative system is running 
+function OSdetect {
+    if type -t wevutil &> /dev/null
+    then
+        OS=MsWin 
+    elif type -t scutil &> /dev/null
+    then
+        OS=macOS
+    else
+        OS=Linux
+    fi 
+    
+    echo "Operative system: $OS" >> 'E4.txt'
+}
+
+# Determinate if an IP is up or not
+function netScan {
+    function is_alive() {
+        ping -c 1 $1 > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            firstPort=10
+            lastPort=500
+            for ((counter=$firstPort; counter<=$lastPort; counter++))
+            do
+                (echo > /dev/tcp/$i/$counter) > /dev/null 2>&1 && (echo "Node with IP: $i is up --> Port: $counter open") >> 'E4.txt' #Check for open ports in each IP then write it in a txt file
+            done
+        fi
+    }
+    #
+    for i in 192.168.64.{1..255}
+    do 
+        is_alive $i & disown
+    done
+
+}
+
+OSdetect
+netScan
