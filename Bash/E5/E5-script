@@ -1,0 +1,24 @@
+#!/bin/bash
+
+curlFunction(){
+    read -sp "[INPUT] Enter your ApiKey: " apiKey
+    cat $1 | while read line; do
+        echo ""
+        echo "[*] Email to check: $line"
+       
+        APIstatusCode=$(curl -o /dev/null --silent -H "HIBP-API-KEY: $apiKey" --write-out '%{http_code}\n' https://haveibeenpwned.com/api/v3/breachedaccount/{$line}) # Get status code
+        
+        if [[ "$APIstatusCode" == "200" ]];
+        then
+            printf '\t%s\n' "You have been pwned in this sites :("
+            request=$(curl -sX GET https://haveibeenpwned.com/api/v3/breachedaccount/{$line} -H "HIBP-API-KEY: $apiKey" | sed 's/[][]//g' | sed 's/Name//g' | sed 's/://g' | sed 's/"//g' | tr -d '{}')
+            echo $request
+        else
+            printf '\t%s\n' "You have NOT been pwned :)"
+        fi
+    done
+}
+
+# apiKey
+# 237d199916384e0aaef2a6508410d82b
+curlFunction $1
